@@ -1,0 +1,50 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+
+if [ ! -d /snappymail/web ]; then
+	echo "Copying snappymail /data/web to /snappymail/web"
+	cp -r /data/* /snappymail
+fi
+
+# Copy snappymail default config if absent
+SNAPPYMAIL_CONFIG_FILE=/snappymail/web/data/_data_/_default_/configs/application.ini
+
+if [ -e $SNAPPYMAIL_CONFIG_FILE ]; then
+	# Enable output of snappymail logs
+	if [ "${LOG_TO_STDERR}" = true ]; then
+	sed -z 's/\; Enable logging\nenable = Off/\; Enable logging\nenable = On/' -i $SNAPPYMAIL_CONFIG_FILE
+	sed 's/^filename = .*/filename = "errors.log"/' -i $SNAPPYMAIL_CONFIG_FILE
+	sed 's/^write_on_error_only = .*/write_on_error_only = Off/' -i $SNAPPYMAIL_CONFIG_FILE
+	sed 's/^write_on_php_error_only = .*/write_on_php_error_only = On/' -i $SNAPPYMAIL_CONFIG_FILE
+	else
+		sed -z 's/\; Enable logging\nenable = On/\; Enable logging\nenable = Off/' -i $SNAPPYMAIL_CONFIG_FILE
+	fi
+	# Always enable snappymail Auth logging
+	sed 's/^auth_logging = .*/auth_logging = On/' -i $SNAPPYMAIL_CONFIG_FILE
+	sed 's/^auth_logging_filename = .*/auth_logging_filename = "auth.log"/' -i $SNAPPYMAIL_CONFIG_FILE
+	sed 's/^auth_logging_format = .*/auth_logging_format = "[{date:Y-m-d H:i:s}] Auth failed: ip={request:ip} user={imap:login} host={imap:host} port={imap:port}"/' -i $SNAPPYMAIL_CONFIG_FILE
+fi
+
+
+# Redirect snappymail logs to stderr /stdout
+mkdir -p /snappymail/web/data/_data_/_default_/logs/
+# empty logs
+cp /dev/null /snappymail/web/data/_data_/_default_/logs/errors.log
+cp /dev/null /snappymail/web/data/_data_/_default_/logs/auth.log
+
+find /snappymail -type d -exec chmod 755 {} \;
+find /snappymail -type f -exec chmod 644 {} \;
+chown -R www-data:www-data /snappymail
+
+
+# Fix permissions
+chmod o+w /dev/stdout
+chmod o+w /dev/stderr
+
+if [ -f /snappymail/web/data/_data_/_default_/admin_password.txt ]; then
+  echo -n "Default Admin password: "
+  cat /snappymail/web/data/_data_/_default_/admin_password.txt
+fi
+
+
+exit 0
