@@ -28,7 +28,7 @@ build:
 		--tag $(IMG_REPO)/$(IMG_NAME) . --no-cache
 
 gitcommit:
-	git push
+	git commit -a -m "$(VERSION)"
 
 gitpush:
 	@echo "Building $(IMG_NAME):$(VERSION) image"
