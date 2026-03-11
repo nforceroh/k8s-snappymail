@@ -1,4 +1,4 @@
-FROM ghcr.io/nforceroh/k8s-nginx-php:latest
+FROM ghcr.io/nforceroh/k8s-nginx-php:latest@sha256:a934624bfbea8833e0aa1515ba370cbc4263d303a0a887aea9efff9f510c3854
 
 ARG \
   BUILD_DATE=now \
